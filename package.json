@@ -1,0 +1,47 @@
+{
+  "name": "qa-payments-lab",
+  "version": "1.0.0",
+  "description": "Laboratório de QA com React, Mocha, Cypress e integração contínua",
+  "type": "module",
+  "scripts": {
+    "test": "mocha \"test/**/*.test.js\"",
+    "test:report": "mocha \"test/**/*.test.js\" --reporter mochawesome --reporter-options reportDir=mochawesome-report,reportFilename=relatorio-testes,html=true,json=true",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test:unit": "npm test",
+    "test:cypress:unit": "cypress run --e2e --config-file cypress.unit.config.js",
+    "test:component": "cypress run --component",
+    "test:e2e:run": "cypress run --e2e",
+    "test:e2e": "npm run build && start-server-and-test preview http://127.0.0.1:4173 test:e2e:run",
+    "test:all": "npm run test:report && npm run test:cypress:unit && npm run test:component && npm run test:e2e",
+    "cypress:open": "cypress open"
+  },
+  "keywords": [
+    "integracao-continua",
+    "github-actions",
+    "testes-automatizados",
+    "mocha",
+    "cypress",
+    "react",
+    "qa",
+    "portfolio"
+  ],
+  "author": "Jefferson Monteiro",
+  "license": "MIT",
+  "devDependencies": {
+    "@vitejs/plugin-react": "6.1.2",
+    "cypress": "16.2.0",
+    "mocha": "12.0.3",
+    "mochawesome": "8.1.1",
+    "start-server-and-test": "3.0.13",
+    "vite": "8.3.4"
+  },
+  "dependencies": {
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "engines": {
+    "node": "^22.12.0 || ^24.0.0"
+  }
+}

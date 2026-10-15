@@ -1,0 +1,82 @@
+name: CI - Serviço de Pagamento
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    # Mantém o agendamento acadêmico: 00:00 UTC / 21:00 em Brasília.
+    - cron: '0 0 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unitarios:
+    name: Unitários Mocha e build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+        env:
+          CYPRESS_INSTALL_BINARY: '0'
+      - run: npm run test:report
+      - run: npm run build
+      - name: Guardar relatório Mocha
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mocha-${{ github.run_number }}
+          path: mochawesome-report/
+          if-no-files-found: warn
+          retention-days: 7
+
+  cypress:
+    name: Cypress / ${{ matrix.camada }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - camada: unitarios
+            comando: npm run test:cypress:unit
+          - camada: componentes
+            comando: npm run test:component
+          - camada: e2e
+            comando: npm run test:e2e
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Cache do binário Cypress
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - run: npm ci
+      - run: ${{ matrix.comando }}
+      - name: Guardar resultados e evidências
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-${{ matrix.camada }}-${{ github.run_number }}
+          path: |
+            reports/cypress/
+            cypress/screenshots/
+            cypress/videos/
+          if-no-files-found: warn
+          retention-days: 7
